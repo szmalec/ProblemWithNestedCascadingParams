@@ -8,7 +8,7 @@
 </div>
 
 @code {
-    //[CascadingParameter] OtherCascadingData OtherCascadingData { get; set; }
+    [CascadingParameter] OtherCascadingData OtherCascadingData { get; set; }    // if this will be commented out then everythings works ok even if ValueChangedHelper is used bellow...
 
     [Parameter] public int? CurrentCount { get => _currentCount; set => ValueChangedHelper.Set(ref _currentCount, value, CurrentCountChanged); }
     //[Parameter] public int? CurrentCount { get; set; }

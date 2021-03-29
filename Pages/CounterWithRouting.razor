@@ -28,14 +28,18 @@ Choose mode:<br />
         Console.WriteLine($"[{GetType().Name}.{nameof(SetParametersAsync)}] CurrentCount: {CurrentCount}, NavigationManager.Uri: {NavigationManager.Uri}..., parameters: {string.Join("; ", parameters.ToDictionary().Select(_ => $"{_.Key} = {_.Value}"))}");
 
         await base.SetParametersAsync(parameters);
-        CurrentCount = CurrentCount ?? 1;   // https://blazor-university.com/routing/optional-route-parameters/
+        //CurrentCount = CurrentCount ?? 1;   // https://blazor-university.com/routing/optional-route-parameters/
+        if (!CurrentCount.HasValue)
+        {
+            await HandleCurrentCountChanged(1);
+        }
     }
 
-    void IncrementCount()
-        => CurrentCount++;
+    Task IncrementCount()
+        => HandleCurrentCountChanged(CurrentCount + 1);
 
     void DecrementCount()
-        => CurrentCount--;
+        => HandleCurrentCountChanged(CurrentCount - 1);
 
     Task HandleCurrentCountChanged(int? cnt)
     {

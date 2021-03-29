@@ -10,16 +10,23 @@
 @code {
     [CascadingParameter] OtherCascadingData OtherCascadingData { get; set; }
 
-    [Parameter] public int? CurrentCount { get => _currentCount; set => ValueChangedHelper.Set(ref _currentCount, value, CurrentCountChanged); }
+    //[Parameter] public int? CurrentCount { get => _currentCount; set => ValueChangedHelper.Set(ref _currentCount, value, CurrentCountChanged); }
+    [Parameter] public int? CurrentCount { get; set; }
     [Parameter] public EventCallback<int?> CurrentCountChanged { get; set; }
     int? _currentCount;
 
-    void IncrementCount()
-        => CurrentCount++;
+    Task IncrementCount()
+        => ChangeCount(CurrentCount + 1);
 
-    void DecrementCount()
-        => CurrentCount--;
+    Task DecrementCount()
+        => ChangeCount(CurrentCount - 1);
 
-   void ResetCount()
-        => CurrentCount = 0;
+    Task ResetCount()
+         => ChangeCount(0);
+
+    Task ChangeCount(int? newValue)
+    {
+        CurrentCount = newValue;
+        return CurrentCountChanged.InvokeAsync(CurrentCount);
+    }
 }

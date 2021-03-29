@@ -1,0 +1,77 @@
+﻿@page "/counter_with_routing"
+@page "/counter_with_routing/{CurrentCount:int}"
+
+@inject NavigationManager NavigationManager
+
+<h3>CounterWithRouting</h3>
+<p>Current count: @CurrentCount</p>
+
+Choose mode:<br />
+<EditForm Model="_model">
+    <InputRadioGroup @bind-Value="_model.CurrentViewMode">
+        <InputRadio Value="@ViewMode.NoCascading" /> @ViewMode.NoCascading (no problems)<br />
+        <InputRadio Value="@ViewMode.SingleCascading" /> @ViewMode.SingleCascading (no problems)<br />
+        <InputRadio Value="@ViewMode.NestedCascading" /> @ViewMode.NestedCascading (<strong>problem</strong> - current count is reflected in URL only temporarily if changed from CounterChild.razor which contains CascadingParameter declaration)
+    </InputRadioGroup>
+</EditForm>
+<br />
+
+@MainContent
+
+@code {
+    [Parameter] public int? CurrentCount { get; set; }
+
+    private FormModel _model = new FormModel();
+
+    public async override Task SetParametersAsync(ParameterView parameters)
+    {
+        Console.WriteLine($"[{GetType().Name}.{nameof(SetParametersAsync)}] CurrentCount: {CurrentCount}, NavigationManager.Uri: {NavigationManager.Uri}..., parameters: {string.Join("; ", parameters.ToDictionary().Select(_ => $"{_.Key} = {_.Value}"))}");
+
+        await base.SetParametersAsync(parameters);
+        CurrentCount = CurrentCount ?? 1;   // https://blazor-university.com/routing/optional-route-parameters/
+    }
+
+    void IncrementCount()
+        => CurrentCount++;
+
+    void DecrementCount()
+        => CurrentCount--;
+
+    Task HandleCurrentCountChanged(int? cnt)
+    {
+        Console.WriteLine($"[{GetType().Name}.{nameof(HandleCurrentCountChanged)}] cnt: {cnt}, CurrentCount: {CurrentCount}");
+        CurrentCount = cnt;
+        NavigationManager.NavigateTo($"/counter_with_routing/{cnt}");
+        return Task.CompletedTask;
+    }
+
+    RenderFragment CommonBody
+        => @<div>
+            <button class="btn btn-primary" @onclick=IncrementCount>Inc</button>
+            <button class="btn btn-primary" @onclick=DecrementCount>Dec</button>
+            <br />
+            <br />
+            <CounterChild CurrentCount="CurrentCount" CurrentCountChanged="HandleCurrentCountChanged" />
+        </div>;
+
+    RenderFragment MainContent
+        => _model.CurrentViewMode switch
+        {
+            ViewMode.NoCascading => @<div>@CommonBody</div>,
+            ViewMode.SingleCascading => @<CascadingData>@CommonBody</CascadingData>,
+            ViewMode.NestedCascading => @<CascadingData><CascadingData>@CommonBody</CascadingData></CascadingData>,
+            _ => @<div>Unknown mode</div>
+        };
+
+    public enum ViewMode
+    {
+        NoCascading,
+        SingleCascading,
+        NestedCascading
+    }
+
+    public class FormModel
+    {
+        public ViewMode CurrentViewMode { get; set; }
+    }
+}

@@ -1,0 +1,25 @@
+﻿<div style="border: 1px solid silver">
+    <h3>Counter child component</h3>
+    <p>Current count: @CurrentCount</p>
+    <br />
+    <button class="btn btn-secondary" @onclick=IncrementCount>Inc</button>
+    <button class="btn btn-secondary" @onclick=DecrementCount>Dec</button>
+    <button class="btn btn-danger" @onclick="ResetCount">Reset</button>
+</div>
+
+@code {
+    [CascadingParameter] OtherCascadingData OtherCascadingData { get; set; }
+
+    [Parameter] public int? CurrentCount { get => _currentCount; set => ValueChangedHelper.Set(ref _currentCount, value, CurrentCountChanged); }
+    [Parameter] public EventCallback<int?> CurrentCountChanged { get; set; }
+    int? _currentCount;
+
+    void IncrementCount()
+        => CurrentCount++;
+
+    void DecrementCount()
+        => CurrentCount--;
+
+   void ResetCount()
+        => CurrentCount = 0;
+}
